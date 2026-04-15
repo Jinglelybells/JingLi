@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>黎静 · Portfolio </title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0906;}
+#scene{position:fixed;inset:0;z-index:0;}
+#particles{position:fixed;inset:0;z-index:1;pointer-events:none;}
+#vignette{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 30%,rgba(8,5,3,0.65) 100%);}
+
+/* Side panels */
+#panel-left,#panel-right{position:fixed;top:0;bottom:0;z-index:3;width:clamp(140px,14vw,200px);}
+#panel-left{left:0;background:linear-gradient(90deg,rgba(12,6,1,0.88) 0%,rgba(80,52,16,0.35) 60%,rgba(110,72,22,0.18) 100%);}
+#panel-right{right:0;background:linear-gradient(270deg,rgba(12,6,1,0.88) 0%,rgba(80,52,16,0.35) 60%,rgba(110,72,22,0.18) 100%);}
+#panel-left::after,#panel-right::after{content:'';position:absolute;top:0;bottom:0;width:3px;background:linear-gradient(180deg,rgba(180,130,45,0) 0%,rgba(200,155,55,0.45) 30%,rgba(200,155,55,0.55) 50%,rgba(200,155,55,0.45) 70%,rgba(180,130,45,0) 100%);}
+#panel-left::after{right:0;}#panel-right::after{left:0;}
+
+/* Lantern glows */
+.lglow{position:fixed;z-index:1;pointer-events:none;border-radius:50%;filter:blur(60px);animation:lgf 4s ease-in-out infinite;}
+@keyframes lgf{0%,100%{opacity:0.6;}50%{opacity:0.75;}}
+
+/* Title */
+#title-block{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;flex-direction:column;align-items:center;padding-top:clamp(10px,0.5vh,16px);pointer-events:none;}
+.title-zh{font-family:'Noto Serif SC',serif;font-size:clamp(13px,1.4vw,18px);letter-spacing:12px;color:rgba(220,185,110,0.6);}
+.title-en{font-family:'IM Fell English',serif;font-size:clamp(28px,4vw,54px);color:#f0e0b8;letter-spacing:4px;line-height:1.1;text-shadow:0 2px 30px rgba(200,140,40,0.4);}
+
+/* Back link */
+#back-link{position:fixed;top:clamp(14px,2vh,22px);left:clamp(20px,3vw,48px);z-index:20;font-family:'Cormorant Garamond',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(180,145,70,0.45);text-decoration:none;transition:color 0.3s;}
+#back-link:hover{color:rgba(200,165,90,0.75);}
+#back-link::before{content:'← ';}
+
+/* Page label */
+#page-label{position:fixed;top:clamp(14px,2vh,22px);right:clamp(20px,3vw,48px);z-index:20;font-family:'Cormorant Garamond',serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(180,145,70,0.45);}
+
+/* Main grid area */
+#grid-wrap{
+  position:fixed;
+  top:clamp(80px,12vh,110px);
+  bottom:clamp(30px,5vh,50px);
+  left:clamp(160px,16vw,220px);
+  right:clamp(160px,16vw,220px);
+  z-index:10;
+  display:flex;flex-direction:column;gap:16px;
+}
+
+/* Filter tabs */
+#filters{
+  display:flex;gap:8px;align-items:center;
+}
+.filter-btn{
+  padding:4px 14px;
+  border:0.5px solid rgba(180,130,50,0.25);
+  font-family:'Cormorant Garamond',serif;
+  font-size:9px;letter-spacing:2.5px;text-transform:uppercase;
+  color:rgba(180,130,50,0.5);
+  cursor:pointer;background:rgba(12,8,4,0.4);
+  transition:all 0.3s;
+  clip-path:polygon(0 0,100% 0,97% 100%,0 100%);
+}
+.filter-btn:hover,.filter-btn.active{
+  color:rgba(220,175,80,0.85);
+  border-color:rgba(200,155,55,0.45);
+  background:rgba(20,12,4,0.6);
+}
+.filter-btn.active{border-left:2px solid #e0b050;}
+.filter-rule{flex:1;height:0.5px;background:linear-gradient(to right,rgba(180,130,50,0.25),transparent);}
+
+/* Portfolio grid */
+#port-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  overflow-y:auto;scrollbar-width:none;
+  flex:1;
+}
+#port-grid::-webkit-scrollbar{display:none;}
+
+/* Portfolio card */
+.port-card{
+  position:relative;
+  background:linear-gradient(135deg,rgba(10,6,2,0.78),rgba(18,10,4,0.72));
+  border:0.5px solid rgba(160,120,40,0.22);
+  border-top:0.5px solid rgba(200,160,60,0.3);
+  cursor:pointer;
+  transition:border-color 0.3s,transform 0.3s;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.port-card:hover{
+  border-color:rgba(200,155,55,0.45);
+  transform:translateY(-2px);
+}
+.port-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,rgba(200,160,60,0.4),transparent);
+}
+.port-card::after{
+  content:'';position:absolute;left:0;top:0;width:0;height:2px;
+  background:#c8923a;transition:width 0.4s ease;
+}
+.port-card:hover::after{width:100%;}
+
+/* Card image slot */
+.card-img{
+  width:100%;aspect-ratio:16/9;
+  background:rgba(0,0,0,0.35);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.card-img img{width:100%;height:100%;object-fit:cover;display:none;}
+.card-img-ph{
+  font-size:7px;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(160,120,40,0.3);font-family:'Cormorant Garamond',serif;
+  text-align:center;line-height:2;padding:10px;
+}
+/* Placeholder shimmer */
+.card-img::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(80,50,15,0.08) 0%,rgba(40,25,8,0.04) 50%,rgba(80,50,15,0.08) 100%);
+}
+
+/* Card content */
+.card-body{padding:14px 16px;}
+.card-type{font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:rgba(100,170,140,0.8);margin-bottom:5px;}
+.card-title{font-family:'IM Fell English',serif;font-size:clamp(13px,1.2vw,16px);color:#f0e0b8;margin-bottom:5px;line-height:1.3;}
+.card-desc{font-size:11px;color:rgba(200,175,135,0.7);line-height:1.55;font-family:'Cormorant Garamond',serif;}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;}
+.card-tag{padding:2px 7px;border:0.5px solid rgba(180,130,50,0.25);font-size:7.5px;letter-spacing:1px;text-transform:uppercase;color:rgba(200,165,90,0.7);font-family:'Cormorant Garamond',serif;}
+
+/* Corner ornaments on each card */
+.cc{position:absolute;width:8px;height:8px;border-color:rgba(180,130,40,0.4);border-style:solid;}
+.cc-tl{top:5px;left:5px;border-width:1px 0 0 1px;}
+.cc-tr{top:5px;right:5px;border-width:1px 1px 0 0;}
+
+/* Bottom creds */
+#bottom-creds{position:fixed;bottom:clamp(14px,2.5vh,28px);left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:20px;align-items:center;pointer-events:none;}
+.cred-item{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(180,145,70,0.5);font-family:'Cormorant Garamond',serif;}
+.cred-dot{width:2px;height:2px;border-radius:50%;background:rgba(180,145,70,0.3);}
+
+/* Load animation */
+#grid-wrap{animation:fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) both;}
+#title-block{animation:fadeUp 1s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+/* ── CEILING LANTERNS ── */
+#lanterns-layer{position:fixed;inset:0;z-index:3;pointer-events:none;}
+.lantern-mount{position:absolute;display:flex;flex-direction:column;align-items:center;}
+.ceiling-string{width:1px;background:rgba(180,130,50,0.4);}
+@keyframes lanternSway{0%,100%{transform:rotate(-3deg) translateY(0);}50%{transform:rotate(3deg) translateY(-10px);}}
+@keyframes lanternSway2{0%,100%{transform:rotate(-4deg) translateY(0);}50%{transform:rotate(4deg) translateY(-12px);}}
+@keyframes lanternSway3{0%,100%{transform:rotate(-5deg) translateY(0);}50%{transform:rotate(5deg) translateY(-8px);}}
+@keyframes candleFlicker{0%,100%{opacity:0.75;}33%{opacity:0.95;}66%{opacity:0.70;}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 18px rgba(255,160,20,0.7),inset 0 0 10px rgba(255,140,10,0.6);}50%{box-shadow:0 0 28px rgba(255,160,20,0.9),inset 0 0 16px rgba(255,140,10,0.8);}}
+.lantern-wrap{display:flex;flex-direction:column;align-items:center;transform-origin:top center;}
+.lw1{animation:lanternSway 5s ease-in-out infinite;}
+.lw2{animation:lanternSway2 6s ease-in-out infinite 0.6s;}
+.lw3{animation:lanternSway3 4.5s ease-in-out infinite 1.2s;}
+.lw4{animation:lanternSway 5.5s ease-in-out infinite 0.3s;}
+.lantern-strings{position:relative;width:100%;height:18px;}
+.lantern-str-l,.lantern-str-r{position:absolute;bottom:0;width:1px;height:18px;background:linear-gradient(to bottom,#7c2d12,#450a0a);}
+.lantern-str-l{left:0;transform:rotate(15deg);transform-origin:bottom center;}
+.lantern-str-r{right:0;transform:rotate(-15deg);transform-origin:bottom center;}
+.lantern-body-wrap{position:relative;}
+.lantern-cap{background:linear-gradient(to bottom,#c2410c,#9a3412,#7c2d12);border:1px solid #9A3412;height:3px;box-shadow:0 2px 4px rgba(0,0,0,0.7);}
+.lantern-frame-l,.lantern-frame-r{position:absolute;top:3px;width:1px;background:linear-gradient(to right,#7c2d12,#9a3412,#7c2d12);}
+.lantern-frame-l{left:0;}.lantern-frame-r{right:0;}
+.lantern-paper{background:#F5E6D3;position:relative;overflow:hidden;animation:glowPulse 2.5s ease-in-out infinite;}
+.lantern-inner-glow{position:absolute;inset:0;background:radial-gradient(ellipse 80% 100% at center bottom,rgba(255,160,20,0.8) 0%,rgba(255,140,10,0.6) 40%,transparent 75%);animation:candleFlicker 2s ease-in-out infinite;}
+.lantern-outer-glow{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(220,110,20,0.22),transparent);pointer-events:none;filter:blur(10px);animation:candleFlicker 3s ease-in-out infinite;}
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+<canvas id="particles"></canvas>
+<div class="lglow" style="width:300px;height:300px;background:radial-gradient(circle,rgba(200,100,30,0.18),transparent);top:-80px;left:15%;animation-delay:0s;"></div>
+<div class="lglow" style="width:250px;height:250px;background:radial-gradient(circle,rgba(180,80,20,0.14),transparent);top:-60px;right:20%;animation-delay:1.5s;"></div>
+<div id="vignette"></div>
+<div id="lanterns-layer">
+  <!-- Lantern 1 — large, far left -->
+  <div class="lantern-mount" style="position:absolute;top:0;left:calc(8% + 18px);">
+    <div class="ceiling-string" style="height:22px;"></div>
+    <div class="lantern-outer-glow" style="width:70px;height:70px;top:-9px;left:-23px;"></div>
+    <div class="lantern-wrap lw1">
+      <div class="lantern-strings" style="width:26px;"><div class="lantern-str-l"></div><div class="lantern-str-r"></div></div>
+      <div class="lantern-body-wrap" style="width:26px;">
+        <div class="lantern-cap" style="width:26px;"></div>
+        <div class="lantern-frame-l" style="height:44px;"></div><div class="lantern-frame-r" style="height:44px;"></div>
+        <div class="lantern-paper" style="width:26px;height:44px;"><div class="lantern-inner-glow"></div></div>
+        <div class="lantern-cap" style="width:28px;margin-left:-1px;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Lantern 2 — medium, left-centre -->
+  <div class="lantern-mount" style="position:absolute;top:0;left:calc(22% + 15px);">
+    <div class="ceiling-string" style="height:14px;"></div>
+    <div class="lantern-outer-glow" style="width:50px;height:50px;top:-6px;left:-16px;"></div>
+    <div class="lantern-wrap lw3">
+      <div class="lantern-strings" style="width:18px;"><div class="lantern-str-l"></div><div class="lantern-str-r"></div></div>
+      <div class="lantern-body-wrap" style="width:18px;">
+        <div class="lantern-cap" style="width:18px;"></div>
+        <div class="lantern-frame-l" style="height:30px;"></div><div class="lantern-frame-r" style="height:30px;"></div>
+        <div class="lantern-paper" style="width:18px;height:30px;"><div class="lantern-inner-glow"></div></div>
+        <div class="lantern-cap" style="width:20px;margin-left:-1px;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Lantern 3 — small, just left of centre -->
+  <div class="lantern-mount" style="position:absolute;top:0;left:calc(30% + 15px);">
+    <div class="ceiling-string" style="height:10px;"></div>
+    <div class="lantern-outer-glow" style="width:38px;height:38px;top:-5px;left:-12px;"></div>
+    <div class="lantern-wrap lw2">
+      <div class="lantern-strings" style="width:14px;"><div class="lantern-str-l"></div><div class="lantern-str-r"></div></div>
+      <div class="lantern-body-wrap" style="width:14px;">
+        <div class="lantern-cap" style="width:14px;"></div>
+        <div class="lantern-frame-l" style="height:22px;"></div><div class="lantern-frame-r" style="height:22px;"></div>
+        <div class="lantern-paper" style="width:14px;height:22px;"><div class="lantern-inner-glow"></div></div>
+        <div class="lantern-cap" style="width:16px;margin-left:-1px;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Lantern 4 — medium-large, right-centre -->
+  <div class="lantern-mount" style="position:absolute;top:0;right:30%;">
+    <div class="ceiling-string" style="height:18px;"></div>
+    <div class="lantern-outer-glow" style="width:60px;height:60px;top:-8px;left:-20px;"></div>
+    <div class="lantern-wrap lw4">
+      <div class="lantern-strings" style="width:22px;"><div class="lantern-str-l"></div><div class="lantern-str-r"></div></div>
+      <div class="lantern-body-wrap" style="width:22px;">
+        <div class="lantern-cap" style="width:22px;"></div>
+        <div class="lantern-frame-l" style="height:36px;"></div><div class="lantern-frame-r" style="height:36px;"></div>
+        <div class="lantern-paper" style="width:22px;height:36px;"><div class="lantern-inner-glow"></div></div>
+        <div class="lantern-cap" style="width:24px;margin-left:-1px;"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Lantern 5 — small, far right -->
+  <div class="lantern-mount" style="position:absolute;top:0;right:16%;">
+    <div class="ceiling-string" style="height:8px;"></div>
+    <div class="lantern-outer-glow" style="width:42px;height:42px;top:-5px;left:-14px;"></div>
+    <div class="lantern-wrap lw1">
+      <div class="lantern-strings" style="width:15px;"><div class="lantern-str-l"></div><div class="lantern-str-r"></div></div>
+      <div class="lantern-body-wrap" style="width:15px;">
+        <div class="lantern-cap" style="width:15px;"></div>
+        <div class="lantern-frame-l" style="height:25px;"></div><div class="lantern-frame-r" style="height:25px;"></div>
+        <div class="lantern-paper" style="width:15px;height:25px;"><div class="lantern-inner-glow"></div></div>
+        <div class="lantern-cap" style="width:17px;margin-left:-1px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-left"></div>
+<div id="panel-right"></div>
+
+<a href="index.html" id="back-link">Back</a>
+<div id="page-label">Portfolio</div>
+
+<div id="title-block">
+  <div class="title-zh">黎 <span style="display:inline-block;width:clamp(50px,8vw,110px);height:1px;background:linear-gradient(to right,transparent,rgba(200,160,70,0.6),transparent);vertical-align:middle;margin:0 6px;"></span> 静</div>
+  <div class="title-en">Jing Li</div>
+<div id="construction-overlay">
+  <div class="construction-box">
+    <div class="cc cc-tl"></div>
+    <div class="cc cc-tr"></div>
+    <div class="cc" style="position:absolute; bottom:5px; left:5px; width:20px; height:20px; border-style:solid; border-width: 0 0 1px 1px; border-color: rgba(200,160,70,0.6);"></div>
+    <div class="cc" style="position:absolute; bottom:5px; right:5px; width:20px; height:20px; border-style:solid; border-width: 0 1px 1px 0; border-color: rgba(200,160,70,0.6);"></div>
+    
+    <h1 class="construction-text" style="color: #FAF9F6 !important;">Under Construction</h1>
+    
+    <div class="construction-sub" style="color: rgba(200, 160, 70, 0.5); font-family: 'Cormorant Garamond', serif; font-size: 10px; letter-spacing: 5px; margin-top: 20px; text-transform: uppercase;">
+      黎静 · Portfolio Update in Progress
+    </div>
+  </div>
+</div>
+
+<div id="grid-wrap">
+  <!-- Filter tabs -->
+  <div id="filters">
+    <div class="filter-btn active" onclick="filterCards('all')">All</div>
+    <div class="filter-btn" onclick="filterCards('illustration')">Illustration</div>
+    <div class="filter-btn" onclick="filterCards('visual-dev')">Visual Dev</div>
+    <div class="filter-btn" onclick="filterCards('other')">Other</div>
+    <div class="filter-rule"></div>
+  </div>
+
+  <!-- Grid -->
+  <div id="port-grid">
+
+    <!-- [ASSET: PORTFOLIO-1] Replace card-img-ph text with <img src="your-file.jpg"> and remove display:none -->
+    <div class="port-card" data-cat="illustration">
+      <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
+      <div class="card-img">
+        <img src="" alt="Illustration 1" style="display:none;">
+        <div class="card-img-ph">Add image<br>Set src on img tag</div>
+      </div>
+      <div class="card-body">
+        <div class="card-type">Illustration</div>
+        <div class="card-title">Title of Work</div>
+        <div class="card-desc">Brief description — medium, context, or concept behind the piece.</div>
+        <div class="card-tags"><span class="card-tag">Add tags</span></div>
+      </div>
+    </div>
+
+    <!-- [ASSET: PORTFOLIO-2] -->
+    <div class="port-card" data-cat="illustration">
+      <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
+      <div class="card-img">
+        <img src="" alt="Illustration 2" style="display:none;">
+        <div class="card-img-ph">Add image<br>Set src on img tag</div>
+      </div>
+      <div class="card-body">
+        <div class="card-type">Illustration</div>
+        <div class="card-title">Title of Work</div>
+        <div class="card-desc">Brief description — medium, context, or concept behind the piece.</div>
+        <div class="card-tags"><span class="card-tag">Add tags</span></div>
+      </div>
+    </div>
+
+    <!-- [ASSET: PORTFOLIO-3] -->
+    <div class="port-card" data-cat="visual-dev">
+      <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
+      <div class="card-img">
+        <img src="" alt="Visual Dev 1" style="display:none;">
+        <div class="card-img-ph">Add image<br>Set src on img tag</div>
+      </div>
+      <div class="card-body">
+        <div class="card-type">Visual Development</div>
+        <div class="card-title">Title of Work</div>
+        <div class="card-desc">Brief description — medium, context, or concept behind the piece.</div>
+        <div class="card-tags"><span class="card-tag">Add tags</span></div>
+      </div>
+    </div>
+
+    <!-- [ASSET: PORTFOLIO-4] -->
+    <div class="port-card" data-cat="visual-dev">
+      <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
+      <div class="card-img">
+        <img src="" alt="Visual Dev 2" style="display:none;">
+        <div class="card-img-ph">Add image<br>Set src on img tag</div>
+      </div>
+      <div class="card-body">
+        <div class="card-type">Visual Development</div>
+        <div class="card-title">Title of Work</div>
+        <div class="card-desc">Brief description — medium, context, or concept.</div>
+        <div class="card-tags"><span class="card-tag">Add tags</span></div>
+      </div>
+    </div>
+
+    <!-- [ASSET: PORTFOLIO-5] -->
+    <div class="port-card" data-cat="illustration">
+      <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
+      <div class="card-img">
+        <img src="" alt="Illustration 3" style="display:none;">
+        <div class="card-img-ph">Add image<br>Set src on img tag</div>
+      </div>
+      <div class="card-body">
+        <div class="card-type">Illustration</div>
+        <div class="card-title">Title of Work</div>
+        <div class="card-desc">Brief description — medium, context, or concept.</div>
+        <div class="card-tags"><span class="card-tag">Add tags</span></div>
+      </div>
+    </div>
+
+    <!-- [ASSET: PORTFOLIO-6] -->
+    <div class="port-card" data-cat="other">
+      <div class="cc cc-tl"></div><div class="cc cc-tr"></div>
+      <div class="card-img">
+        <img src="" alt="Other 1" style="display:none;">
+        <div class="card-img-ph">Add image<br>Set src on img tag</div>
+      </div>
+      <div class="card-body">
+        <div class="card-type">Other</div>
+        <div class="card-title">Title of Work</div>
+        <div class="card-desc">Brief description — medium, context, or concept.</div>
+        <div class="card-tags"><span class="card-tag">Add tags</span></div>
+      </div>
+    </div>
+
+  </div><!-- /port-grid -->
+</div><!-- /grid-wrap -->
+
+<div id="bottom-creds">
+  <span class="cred-item">GIA Graduate Gemologist</span><div class="cred-dot"></div>
+  <span class="cred-item">CAPM · PMI</span><div class="cred-dot"></div>
+  <span class="cred-item">Google PM Certificate</span>
+</div>
+
+<script>
+// Scene canvas — same background as main page
+const sc=document.getElementById('scene');
+const sctx=sc.getContext('2d');
+function resize(){sc.width=window.innerWidth;sc.height=window.innerHeight;}
+
+function paint(){
+  const w=sc.width,h=sc.height;
+  if(!w||!h)return;
+  sctx.clearRect(0,0,w,h);
+  const bg=sctx.createLinearGradient(0,0,0,h);
+  bg.addColorStop(0,'#0d0804');bg.addColorStop(0.35,'#150d06');
+  bg.addColorStop(0.7,'#1a0f07');bg.addColorStop(1,'#0d0804');
+  sctx.fillStyle=bg;sctx.fillRect(0,0,w,h);
+  // Ambient warm pools
+  [[0.3,0.15,'rgba(80,50,15,0.10)'],[0.7,0.2,'rgba(60,35,10,0.08)']].forEach(function(a){
+    var g=sctx.createRadialGradient(w*a[0],h*a[1],0,w*a[0],h*a[1],w*0.45);
+    g.addColorStop(0,a[2]);g.addColorStop(1,'transparent');
+    sctx.fillStyle=g;sctx.fillRect(0,0,w,h);
+  });
+  // Floor gradient
+  var fl=sctx.createLinearGradient(0,h*0.75,0,h);
+  fl.addColorStop(0,'rgba(60,35,12,0)');fl.addColorStop(0.4,'rgba(45,25,8,0.6)');fl.addColorStop(1,'rgba(20,10,3,0.95)');
+  sctx.fillStyle=fl;sctx.fillRect(0,h*0.7,w,h*0.3);
+  // Wall darks
+  var lw=sctx.createLinearGradient(0,0,w*0.16,0);
+  lw.addColorStop(0,'rgba(25,12,4,0.85)');lw.addColorStop(1,'rgba(25,12,4,0)');
+  sctx.fillStyle=lw;sctx.fillRect(0,0,w*0.16,h);
+  var rw=sctx.createLinearGradient(w*0.84,0,w,0);
+  rw.addColorStop(0,'rgba(25,12,4,0)');rw.addColorStop(1,'rgba(25,12,4,0.85)');
+  sctx.fillStyle=rw;sctx.fillRect(w*0.84,0,w*0.16,h);
+}
+
+// Particles
+const pc=document.getElementById('particles');
+const pctx=pc.getContext('2d');
+var pts=[];
+function initP(){
+  pc.width=window.innerWidth;pc.height=window.innerHeight;pts=[];
+  for(var i=0;i<40;i++){
+    pts.push({x:Math.random()*pc.width,y:Math.random()*pc.height,
+      r:Math.random()*1.2+0.3,vx:(Math.random()-0.5)*0.12,vy:-(Math.random()*0.2+0.04),
+      o:Math.random()*0.3+0.04,life:Math.random(),
+      c:Math.random()<0.5?'rgba(200,160,60,':'rgba(220,180,100,'});
+  }
+}
+function animP(){
+  pctx.clearRect(0,0,pc.width,pc.height);
+  pts.forEach(function(p){
+    p.x+=p.vx;p.y+=p.vy;p.life+=0.003;
+    if(p.y<-5||p.life>1){p.y=pc.height+5;p.x=Math.random()*pc.width;p.life=0;}
+    var a=p.o*(1-Math.abs(p.life*2-1));
+    pctx.beginPath();pctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    pctx.fillStyle=p.c+a+')';pctx.fill();
+  });
+  requestAnimationFrame(animP);
+}
+
+// Filter
+function filterCards(cat){
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  event.target.classList.add('active');
+  document.querySelectorAll('.port-card').forEach(function(c){
+    c.style.display=(cat==='all'||c.dataset.cat===cat)?'flex':'none';
+  });
+}
+
+var lastT=0;
+function loop(t){if(t-lastT>40){paint();lastT=t;}requestAnimationFrame(loop);}
+window.addEventListener('resize',function(){resize();initP();pc.width=window.innerWidth;pc.height=window.innerHeight;});
+resize();initP();animP();loop(0);
+</script>
+</body>
+</html>
